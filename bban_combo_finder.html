@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BBAN Combo Finder</title>
+<style>
+  :root {
+    --bg:#0f1220;
+    --panel:#171b2e;
+    --panel2:#1e2340;
+    --border:#2c3357;
+    --text:#eef0fb;
+    --muted:#9aa0c3;
+    --accent:#ff5d3b;
+    --accent2:#3bd6ff;
+    --gold:#ffcf56;
+    --good:#4ade80;
+    --warn:#fbbf24;
+  }
+  * { box-sizing:border-box; }
+  body {
+    margin:0;
+    font-family:'Segoe UI',system-ui,-apple-system,BlinkMacSystemFont,sans-serif;
+    background:
+      radial-gradient(circle at 15% 10%, rgba(255,93,59,0.10), transparent 40%),
+      radial-gradient(circle at 85% 90%, rgba(59,214,255,0.10), transparent 40%),
+      var(--bg);
+    color:var(--text);
+    padding:24px 16px 60px;
+  }
+  .wrap { max-width:1080px; margin:0 auto; }
+  header { margin-bottom:22px; }
+  .eyebrow {
+    text-transform:uppercase;
+    letter-spacing:0.18em;
+    font-size:11px;
+    color:var(--accent2);
+    font-weight:800;
+    margin-bottom:6px;
+  }
+  h1 {
+    font-size:clamp(30px,5vw,46px);
+    margin:0 0 8px;
+    letter-spacing:-0.03em;
+    background:linear-gradient(90deg,var(--accent),var(--gold));
+    -webkit-background-clip:text;
+    background-clip:text;
+    color:transparent;
+  }
+  .sub {
+    color:var(--muted);
+    font-size:15px;
+    max-width:780px;
+    line-height:1.5;
+  }
+  .note {
+    margin-top:14px;
+    border:1px solid rgba(251,191,36,.35);
+    background:rgba(251,191,36,.08);
+    color:#ffe7a1;
+    border-radius:12px;
+    padding:12px 14px;
+    font-size:13.5px;
+    line-height:1.45;
+  }
+  .stats {
+    display:grid;
+    grid-template-columns:repeat(4, minmax(0, 1fr));
+    gap:12px;
+    margin-top:18px;
+  }
+  @media (max-width:760px) { .stats { grid-template-columns:repeat(2, minmax(0, 1fr)); } }
+  @media (max-width:480px) { .stats { grid-template-columns:1fr; } }
+  .stat {
+    background:var(--panel);
+    border:1px solid var(--border);
+    border-radius:12px;
+    padding:12px 14px;
+    color:var(--muted);
+    font-size:12.5px;
+    min-height:70px;
+  }
+  .stat b {
+    color:var(--text);
+    font-size:22px;
+    line-height:1.15;
+    display:block;
+    margin-top:2px;
+  }
+  .panel {
+    background:rgba(23,27,46,.9);
+    border:1px solid var(--border);
+    border-radius:16px;
+    padding:16px;
+    margin:16px 0;
+    box-shadow:0 10px 40px rgba(0,0,0,.18);
+  }
+  .filter-grid {
+    display:grid;
+    grid-template-columns:1.35fr repeat(3, 1fr) .65fr;
+    gap:12px;
+    align-items:end;
+  }
+  @media (max-width:900px) { .filter-grid { grid-template-columns:repeat(2, minmax(0, 1fr)); } }
+  @media (max-width:560px) { .filter-grid { grid-template-columns:1fr; } }
+  label {
+    display:block;
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:.12em;
+    color:var(--muted);
+    margin-bottom:7px;
+    font-weight:700;
+  }
+  select, input[type="text"] {
+    width:100%;
+    background:var(--panel2);
+    border:1px solid var(--border);
+    color:var(--text);
+    padding:11px 12px;
+    border-radius:10px;
+    font-size:14px;
+    outline:none;
+  }
+  select:focus, input:focus { border-color:var(--accent2); }
+  .button-row {
+    display:flex;
+    justify-content:space-between;
+    gap:12px;
+    margin-top:12px;
+    flex-wrap:wrap;
+  }
+  button {
+    background:var(--panel2);
+    border:1px solid var(--border);
+    color:var(--text);
+    padding:9px 12px;
+    border-radius:9px;
+    font-size:13px;
+    cursor:pointer;
+  }
+  button:hover { border-color:var(--accent2); color:var(--accent2); }
+  .summary-grid {
+    display:grid;
+    grid-template-columns:repeat(3, 1fr);
+    gap:12px;
+  }
+  @media (max-width:800px) { .summary-grid { grid-template-columns:1fr; } }
+  .mini-card {
+    background:var(--panel);
+    border:1px solid var(--border);
+    border-radius:14px;
+    padding:14px;
+  }
+  .mini-card h2, .results h2 {
+    margin:0 0 12px;
+    color:var(--muted);
+    font-size:12px;
+    text-transform:uppercase;
+    letter-spacing:.13em;
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+  .mini-card h2::before, .results h2::before {
+    content:"";
+    width:7px;
+    height:7px;
+    border-radius:50%;
+    background:var(--accent);
+    display:inline-block;
+  }
+  .pill-list { display:flex; flex-wrap:wrap; gap:8px; }
+  .pill {
+    border:1px solid var(--border);
+    background:var(--panel2);
+    padding:6px 9px;
+    border-radius:999px;
+    font-size:12px;
+    color:var(--muted);
+  }
+  .pill b { color:var(--text); }
+  .table-wrap {
+    overflow:auto;
+    border:1px solid var(--border);
+    border-radius:14px;
+  }
+  table {
+    width:100%;
+    border-collapse:collapse;
+    min-width:760px;
+    background:var(--panel);
+  }
+  th {
+    position:sticky;
+    top:0;
+    z-index:1;
+    background:var(--panel2);
+    text-align:left;
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:.08em;
+    color:var(--muted);
+    padding:11px 12px;
+    border-bottom:1px solid var(--border);
+    white-space:nowrap;
+  }
+  td {
+    padding:10px 12px;
+    border-bottom:1px solid rgba(255,255,255,.05);
+    font-size:14px;
+  }
+  tr:last-child td { border-bottom:none; }
+  .rank { color:var(--gold); font-weight:800; font-variant-numeric:tabular-nums; }
+  .combo { font-weight:700; }
+  .muted { color:var(--muted); }
+  .points-cell {
+    min-width:180px;
+  }
+  .bar-wrap {
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+  .bar-track {
+    flex:1;
+    height:7px;
+    background:var(--panel2);
+    border-radius:999px;
+    overflow:hidden;
+  }
+  .bar-fill {
+    height:100%;
+    background:linear-gradient(90deg,var(--accent),var(--gold));
+    border-radius:999px;
+  }
+  .pts-val {
+    color:var(--gold);
+    font-weight:800;
+    min-width:38px;
+    text-align:right;
+    font-variant-numeric:tabular-nums;
+  }
+  .empty {
+    border:1px dashed var(--border);
+    border-radius:14px;
+    padding:34px;
+    text-align:center;
+    color:var(--muted);
+  }
+  footer {
+    margin-top:36px;
+    text-align:center;
+    color:var(--muted);
+    font-size:12px;
+    line-height:1.45;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Tournament-backed combo finder</div>
+    <h1>BBAN Combo Finder</h1>
+    <div class="sub">
+      Filter Beyblade X combos by Blade, Ratchet, or Bit and rank them by accumulated podium points.
+      This is a deliberately simplified version of the combo finder using the supplied BBAN aggregate dataset.
+    </div>
+    <div class="note">
+      <strong>Data note:</strong> This page is based on a small Beyblade Australia Network (BBAN) dataset dating back to September 2025.
+      Points are cumulative from recorded podium decks only: 1st place = 3 points, 2nd place = 2 points, 3rd place = 1 point.
+      Treat this as local tournament evidence, not a complete global meta ranking.
+    </div>
+    <div class="stats" id="statsRow"></div>
+  </header>
+
+  <section class="panel" aria-label="Combo filters">
+    <div class="filter-grid">
+      <div>
+        <label for="searchBox">Search</label>
+        <input type="text" id="searchBox" placeholder="Search blade, ratchet, bit, or combo...">
+      </div>
+      <div>
+        <label for="bladeSelect">Blade</label>
+        <select id="bladeSelect"><option value="">Any blade</option></select>
+      </div>
+      <div>
+        <label for="ratchetSelect">Ratchet</label>
+        <select id="ratchetSelect"><option value="">Any ratchet</option></select>
+      </div>
+      <div>
+        <label for="bitSelect">Bit</label>
+        <select id="bitSelect"><option value="">Any bit</option></select>
+      </div>
+      <div>
+        <label for="limitSelect">Show</label>
+        <select id="limitSelect">
+          <option value="25">Top 25</option>
+          <option value="50" selected>Top 50</option>
+          <option value="100">Top 100</option>
+          <option value="9999">All</option>
+        </select>
+      </div>
+    </div>
+    <div class="button-row">
+      <button id="resetBtn" type="button">Reset filters</button>
+      <button id="copyBtn" type="button">Copy visible rows as TSV</button>
+    </div>
+  </section>
+
+  <section class="summary-grid" id="summaryGrid"></section>
+
+  <section class="results panel">
+    <h2 id="resultsHeading">Ranked combos</h2>
+    <div id="results"></div>
+  </section>
+
+  <footer>
+    Built from the uploaded aggregate CSV. Display names are kept as supplied, including CX-style names such as
+    <em>Metal Blast Heavy</em> and <em>Plastic Blast Wheel</em>.
+  </footer>
+</div>
+
+<script>
+const COMBOS = [{"Blade": "WizardRod", "Ratchet": "1-60", "Bit": "Hexa", "Points": 219}, {"Blade": "SharkScale", "Ratchet": "3-60", "Bit": "Low Rush", "Points": 72}, {"Blade": "SharkScale", "Ratchet": "1-70", "Bit": "Low Rush", "Points": 61}, {"Blade": "CobaltDragoon", "Ratchet": "5-60", "Bit": "Elevate", "Points": 61}, {"Blade": "HoverWyvern", "Ratchet": "9-60", "Bit": "Kick", "Points": 52}, {"Blade": "HoverWyvern", "Ratchet": "9-60", "Bit": "Rush", "Points": 37}, {"Blade": "SharkScale", "Ratchet": "4-50", "Bit": "Low Rush", "Points": 27}, {"Blade": "WizardRod", "Ratchet": "9-60", "Bit": "Hexa", "Points": 23}, {"Blade": "WizardRod", "Ratchet": "9-60", "Bit": "Free Ball", "Points": 21}, {"Blade": "AeroPegasus", "Ratchet": "1-60", "Bit": "Rush", "Points": 19}, {"Blade": "SilverWolf", "Ratchet": "9-60", "Bit": "Free Ball", "Points": 15}, {"Blade": "SharkScale", "Ratchet": "3-60", "Bit": "Rush", "Points": 15}, {"Blade": "SharkScale", "Ratchet": "3-60", "Bit": "Free Ball", "Points": 13}, {"Blade": "SharkScale", "Ratchet": "9-60", "Bit": "Low Orb", "Points": 12}, {"Blade": "SharkScale", "Ratchet": "1-60", "Bit": "Low Rush", "Points": 12}, {"Blade": "HoverWyvern", "Ratchet": "9-60", "Bit": "Low Rush", "Points": 12}, {"Blade": "SharkScale", "Ratchet": "1-60", "Bit": "Low Orb", "Points": 12}, {"Blade": "CobaltDragoon", "Ratchet": "9-60", "Bit": "Elevate", "Points": 11}, {"Blade": "PhoenixWing", "Ratchet": "1-60", "Bit": "Rush", "Points": 10}, {"Blade": "AeroPegasus", "Ratchet": "1-50", "Bit": "Rush", "Points": 10}, {"Blade": "SharkScale", "Ratchet": "3-60", "Bit": "Wedge", "Points": 9}, {"Blade": "AeroPegasus", "Ratchet": "7-60", "Bit": "Rush", "Points": 9}, {"Blade": "WizardRod", "Ratchet": "1-70", "Bit": "Hexa", "Points": 9}, {"Blade": "WizardRod", "Ratchet": "1-60", "Bit": "Wedge", "Points": 9}, {"Blade": "AeroPegasus", "Ratchet": "1-60", "Bit": "Kick", "Points": 9}, {"Blade": "AeroPegasus", "Ratchet": "1-70", "Bit": "Low Rush", "Points": 9}, {"Blade": "SharkScale", "Ratchet": "4-50", "Bit": "Rush", "Points": 8}, {"Blade": "GolemRock", "Ratchet": "9-60", "Bit": "Wedge", "Points": 8}, {"Blade": "WizardRod", "Ratchet": "9-60", "Bit": "Wedge", "Points": 8}, {"Blade": "SharkScale", "Ratchet": "1-50", "Bit": "Low Rush", "Points": 8}, {"Blade": "HoverWyvern", "Ratchet": "3-60", "Bit": "Kick", "Points": 8}, {"Blade": "SharkScale", "Ratchet": "1-70", "Bit": "Jolt", "Points": 7}, {"Blade": "SharkScale", "Ratchet": "1-50", "Bit": "Rush", "Points": 7}, {"Blade": "SharkScale", "Ratchet": "4-50", "Bit": "Level", "Points": 7}, {"Blade": "SharkScale", "Ratchet": "9-60", "Bit": "Free Ball", "Points": 7}, {"Blade": "WizardRod", "Ratchet": "1-60", "Bit": "Low Orb", "Points": 7}, {"Blade": "SilverWolf", "Ratchet": "9-60", "Bit": "Ball", "Points": 7}, {"Blade": "SharkScale", "Ratchet": "1-60", "Bit": "Rush", "Points": 6}, {"Blade": "Plastic Blast Wheel", "Ratchet": "7-60", "Bit": "Hexa", "Points": 6}, {"Blade": "Metal Blast Heavy", "Ratchet": "6-60", "Bit": "Low Rush", "Points": 6}, {"Blade": "SharkScale", "Ratchet": "9-70", "Bit": "Low Rush", "Points": 6}, {"Blade": "SharkScale", "Ratchet": "1-50", "Bit": "Kick", "Points": 6}, {"Blade": "AeroPegasus", "Ratchet": "1-70", "Bit": "Kick", "Points": 6}, {"Blade": "PhoenixWing", "Ratchet": "9-60", "Bit": "Kick", "Points": 6}, {"Blade": "WizardRod", "Ratchet": "3-60", "Bit": "Hexa", "Points": 6}, {"Blade": "SilverWolf", "Ratchet": "9-60", "Bit": "Low Orb", "Points": 6}, {"Blade": "SharkScale", "Ratchet": "3-60", "Bit": "Hexa", "Points": 6}, {"Blade": "Metal Blast Heavy", "Ratchet": "9-60", "Bit": "Kick", "Points": 5}, {"Blade": "PhoenixWing", "Ratchet": "3-60", "Bit": "Flat", "Points": 5}, {"Blade": "MeteorDragoon", "Ratchet": "9-60", "Bit": "Elevate", "Points": 5}, {"Blade": "MeteorDragoon", "Ratchet": "7-60", "Bit": "Level", "Points": 5}, {"Blade": "PhoenixWing", "Ratchet": "7-60", "Bit": "Kick", "Points": 5}, {"Blade": "WizardRod", "Ratchet": "9-60", "Bit": "Ball", "Points": 5}, {"Blade": "SharkScale", "Ratchet": "9-60", "Bit": "Low Rush", "Points": 5}, {"Blade": "SharkScale", "Ratchet": "7-70", "Bit": "Low Rush", "Points": 5}, {"Blade": "SharkScale", "Ratchet": "3-60", "Bit": "Point", "Points": 5}, {"Blade": "Metal Blast Heavy", "Ratchet": "1-60", "Bit": "Low Rush", "Points": 5}, {"Blade": "HoverWyvern", "Ratchet": "7-60", "Bit": "Kick", "Points": 5}, {"Blade": "HoverWyvern", "Ratchet": "1-70", "Bit": "Taper", "Points": 5}, {"Blade": "HoverWyvern", "Ratchet": "1-60", "Bit": "Rush", "Points": 5}, {"Blade": "WizardRod", "Ratchet": "1-60", "Bit": "Free Ball", "Points": 5}, {"Blade": "SharkScale", "Ratchet": "1-50", "Bit": "Free Ball", "Points": 5}, {"Blade": "Plastic Blast Heavy", "Ratchet": "3-60", "Bit": "Low Rush", "Points": 5}, {"Blade": "AeroPegasus", "Ratchet": "1-60", "Bit": "Rubber Accel", "Points": 5}, {"Blade": "SharkScale", "Ratchet": "1-60", "Bit": "Jolt", "Points": 5}, {"Blade": "WizardRod", "Ratchet": "9-60", "Bit": "Low Orb", "Points": 4}, {"Blade": "PhoenixWing", "Ratchet": "3-60", "Bit": "Point", "Points": 4}, {"Blade": "PhoenixWing", "Ratchet": "1-70", "Bit": "Low Rush", "Points": 4}, {"Blade": "HoverWyvern", "Ratchet": "1-70", "Bit": "Kick", "Points": 4}, {"Blade": "AeroPegasus", "Ratchet": "1-80", "Bit": "Rush", "Points": 4}, {"Blade": "AeroPegasus", "Ratchet": "3-60", "Bit": "Low Rush", "Points": 4}, {"Blade": "HoverWyvern", "Ratchet": "1-60", "Bit": "Kick", "Points": 4}, {"Blade": "SharkScale", "Ratchet": "3-60", "Bit": "Kick", "Points": 4}, {"Blade": "SharkScale", "Ratchet": "3-60", "Bit": "Rubber Accel", "Points": 4}, {"Blade": "TyrannoBeat", "Ratchet": "1-60", "Bit": "Rush", "Points": 4}, {"Blade": "PhoenixWing", "Ratchet": "3-60", "Bit": "Low Rush", "Points": 4}, {"Blade": "Metal Blast Heavy", "Ratchet": "3-60", "Bit": "Kick", "Points": 4}, {"Blade": "HoverWyvern", "Ratchet": "3-60", "Bit": "Low Rush", "Points": 4}, {"Blade": "PhoenixWing", "Ratchet": "1-50", "Bit": "Low Rush", "Points": 4}, {"Blade": "PhoenixWing", "Ratchet": "9-60", "Bit": "Rush", "Points": 4}, {"Blade": "WizardRod", "Ratchet": "1-70", "Bit": "Rubber Accel", "Points": 3}, {"Blade": "WizardRod", "Ratchet": "1-60", "Bit": "Ball", "Points": 3}, {"Blade": "WizardRod", "Ratchet": "1-50", "Bit": "Hexa", "Points": 3}, {"Blade": "UnicornSting", "Ratchet": "9-60", "Bit": "Low Orb", "Points": 3}, {"Blade": "SharkScale", "Ratchet": "9-70", "Bit": "Low Orb", "Points": 3}, {"Blade": "SharkScale", "Ratchet": "5-60", "Bit": "Rush", "Points": 3}, {"Blade": "SharkScale", "Ratchet": "4-55", "Bit": "Level", "Points": 3}, {"Blade": "SharkScale", "Ratchet": "4-50", "Bit": "Hexa", "Points": 3}, {"Blade": "SharkScale", "Ratchet": "3-60", "Bit": "Level", "Points": 3}, {"Blade": "SharkScale", "Ratchet": "1-80", "Bit": "Low Rush", "Points": 3}, {"Blade": "SharkScale", "Ratchet": "1-70", "Bit": "Rubber Accel", "Points": 3}, {"Blade": "SharkScale", "Ratchet": "1-70", "Bit": "Kick", "Points": 3}, {"Blade": "UnicornSting", "Ratchet": "1-60", "Bit": "Rubber Accel", "Points": 3}, {"Blade": "TyrannoRoar", "Ratchet": "1-70", "Bit": "Kick", "Points": 3}, {"Blade": "TyrannoBeat", "Ratchet": "7-70", "Bit": "Kick", "Points": 3}, {"Blade": "TyrannoBeat", "Ratchet": "2-70", "Bit": "Kick", "Points": 3}, {"Blade": "SilverWolf", "Ratchet": "9-60", "Bit": "Orb", "Points": 3}, {"Blade": "SilverWolf", "Ratchet": "7-60", "Bit": "Hexa", "Points": 3}, {"Blade": "SilverWolf", "Ratchet": "7-60", "Bit": "Free Ball", "Points": 3}, {"Blade": "SharkScale", "Ratchet": "9-70", "Bit": "Rush", "Points": 3}, {"Blade": "CobaltDragoon", "Ratchet": "6-60", "Bit": "Elevate", "Points": 3}, {"Blade": "CobaltDragoon", "Ratchet": "6-60", "Bit": "Level", "Points": 3}, {"Blade": "CobaltDragoon", "Ratchet": "9-70", "Bit": "Elevate", "Points": 3}, {"Blade": "DranBuster", "Ratchet": "1-60", "Bit": "Rush", "Points": 3}, {"Blade": "DranStrike", "Ratchet": "1-50", "Bit": "Free-flat", "Points": 3}, {"Blade": "DranStrike", "Ratchet": "1-60", "Bit": "Rush", "Points": 3}, {"Blade": "DranStrike", "Ratchet": "6-60", "Bit": "Kick", "Points": 3}, {"Blade": "GolemRock", "Ratchet": "9-60", "Bit": "Jolt", "Points": 3}, {"Blade": "AeroPegasus", "Ratchet": "1-60", "Bit": "Point", "Points": 3}, {"Blade": "AeroPegasus", "Ratchet": "1-70", "Bit": "Rubber Accel", "Points": 3}, {"Blade": "AeroPegasus", "Ratchet": "3-60", "Bit": "Level", "Points": 3}, {"Blade": "AeroPegasus", "Ratchet": "7-70", "Bit": "Level", "Points": 3}, {"Blade": "AeroPegasus", "Ratchet": "7-70", "Bit": "Rush", "Points": 3}, {"Blade": "AeroPegasus", "Ratchet": "9-60", "Bit": "Rush", "Points": 3}, {"Blade": "BlackShell", "Ratchet": "9-60", "Bit": "Under Flat", "Points": 3}, {"Blade": "CobaltDragoon", "Ratchet": "3-60", "Bit": "Elevate", "Points": 3}, {"Blade": "Metal Blast Heavy", "Ratchet": "1-60", "Bit": "Rush", "Points": 3}, {"Blade": "LDrago", "Ratchet": "1-70", "Bit": "Low Rush", "Points": 3}, {"Blade": "KnifeShinobi", "Ratchet": "1-60", "Bit": "Quake", "Points": 3}, {"Blade": "HoverWyvern", "Ratchet": "9-60", "Bit": "Free Ball", "Points": 3}, {"Blade": "HoverWyvern", "Ratchet": "7-60", "Bit": "Rush", "Points": 3}, {"Blade": "HoverWyvern", "Ratchet": "1-80", "Bit": "Low Rush", "Points": 3}, {"Blade": "HoverWyvern", "Ratchet": "1-60", "Bit": "Level", "Points": 3}, {"Blade": "GolemRock", "Ratchet": "9-70", "Bit": "Low Rush", "Points": 3}, {"Blade": "PhoenixWing", "Ratchet": "1-60", "Bit": "Low Rush", "Points": 3}, {"Blade": "PhoenixWing", "Ratchet": "1-60", "Bit": "Kick", "Points": 3}, {"Blade": "MummyCurse", "Ratchet": "5-60", "Bit": "Wedge", "Points": 3}, {"Blade": "MummyCurse", "Ratchet": "1-70", "Bit": "Wedge", "Points": 3}, {"Blade": "MummyCurse", "Ratchet": "1-60", "Bit": "Free Ball", "Points": 3}, {"Blade": "MeteorDragoon", "Ratchet": "9-60", "Bit": "Level", "Points": 3}, {"Blade": "Metal Blast Jaggy", "Ratchet": "1-60", "Bit": "Hexa", "Points": 3}, {"Blade": "Metal Blast Heavy", "Ratchet": "9-60", "Bit": "Jolt", "Points": 3}, {"Blade": "Plastic Blast Wheel", "Ratchet": "9-60", "Bit": "Hexa", "Points": 3}, {"Blade": "Plastic Blast Jaggy", "Ratchet": "9-70", "Bit": "Hexa", "Points": 3}, {"Blade": "Plastic Blast Heavy", "Ratchet": "9-60", "Bit": "Kick", "Points": 3}, {"Blade": "Plastic Blast Heavy", "Ratchet": "1-60", "Bit": "Rush", "Points": 3}, {"Blade": "Plastic Blast Heavy", "Ratchet": "1-60", "Bit": "Kick", "Points": 3}, {"Blade": "Plastic Blast Charge", "Ratchet": "1-60", "Bit": "Jolt", "Points": 3}, {"Blade": "PhoenixWing", "Ratchet": "3-60", "Bit": "Level", "Points": 3}, {"Blade": "PhoenixWing", "Ratchet": "1-70", "Bit": "Jolt", "Points": 3}, {"Blade": "SharkScale", "Ratchet": "1-70", "Bit": "Hexa", "Points": 3}, {"Blade": "SharkScale", "Ratchet": "1-60", "Bit": "Free Ball", "Points": 3}, {"Blade": "SharkScale", "Ratchet": "1-50", "Bit": "Low Orb", "Points": 3}, {"Blade": "ScorpioSpear", "Ratchet": "9-60", "Bit": "Rush", "Points": 3}, {"Blade": "ScorpioSpear", "Ratchet": "6-60", "Bit": "Low Orb", "Points": 3}, {"Blade": "Plastic Reaper Wheel", "Ratchet": "9-70", "Bit": "Kick", "Points": 3}, {"Blade": "Plastic Flare Wheel", "Ratchet": "7-60", "Bit": "Rubber Accel", "Points": 3}, {"Blade": "Plastic Flame Heavy", "Ratchet": "7-70", "Bit": "Hexa", "Points": 3}, {"Blade": "HoverWyvern", "Ratchet": "7-60", "Bit": "Level", "Points": 2}, {"Blade": "AeroPegasus", "Ratchet": "6-60", "Bit": "Rush", "Points": 2}, {"Blade": "BahamutScale", "Ratchet": "3-60", "Bit": "Low Rush", "Points": 2}, {"Blade": "ClockMirage", "Ratchet": "4-55", "Bit": "Low Orb", "Points": 2}, {"Blade": "ClockMirage", "Ratchet": "4-55", "Bit": "Wedge", "Points": 2}, {"Blade": "CobaltDragoon", "Ratchet": "4-60", "Bit": "Elevate", "Points": 2}, {"Blade": "CobaltDrake", "Ratchet": "1-60", "Bit": "Point", "Points": 2}, {"Blade": "DranBuster", "Ratchet": "1-50", "Bit": "Low Rush", "Points": 2}, {"Blade": "DranStrike", "Ratchet": "1-50", "Bit": "Low Rush", "Points": 2}, {"Blade": "DranStrike", "Ratchet": "1-60", "Bit": "Hexa", "Points": 2}, {"Blade": "DranStrike", "Ratchet": "3-60", "Bit": "Kick", "Points": 2}, {"Blade": "GhostCircle", "Ratchet": "7-70", "Bit": "Elevate", "Points": 2}, {"Blade": "OrochiCluster", "Ratchet": "7-60", "Bit": "Level", "Points": 2}, {"Blade": "AeroPegasus", "Ratchet": "3-80", "Bit": "Kick", "Points": 2}, {"Blade": "Metal Rage Flow Heavy", "Ratchet": "9-60", "Bit": "Low Rush", "Points": 2}, {"Blade": "Plastic Delta Peak Heavy", "Ratchet": "3-60", "Bit": "Kick", "Points": 2}, {"Blade": "RhinoHorn", "Ratchet": "3-60", "Bit": "Level", "Points": 2}, {"Blade": "Plastic Arc Round", "Ratchet": "4-55", "Bit": "Low Orb", "Points": 2}, {"Blade": "WizardRod", "Ratchet": "1-60", "Bit": "Wall Ball", "Points": 2}, {"Blade": "WizardRod", "Ratchet": "3-60", "Bit": "Free Ball", "Points": 2}, {"Blade": "WizardRod", "Ratchet": "1-60", "Bit": "Kick", "Points": 2}, {"Blade": "WizardRod", "Ratchet": "1-60", "Bit": "Narrow", "Points": 2}, {"Blade": "WizardRod", "Ratchet": "6-60", "Bit": "Wedge", "Points": 2}, {"Blade": "Plastic Blitz Heavy", "Ratchet": "1-50", "Bit": "Low Rush", "Points": 2}, {"Blade": "Plastic Might Jaggy", "Ratchet": "9-60", "Bit": "Low Orb", "Points": 2}, {"Blade": "SamuraiCalibur", "Ratchet": "1-70", "Bit": "Low Orb", "Points": 2}, {"Blade": "ScorpioSpear", "Ratchet": "3-60", "Bit": "Wedge", "Points": 2}, {"Blade": "ScorpioSpear", "Ratchet": "5-60", "Bit": "Point", "Points": 2}, {"Blade": "MeteorDragoon", "Ratchet": "5-70", "Bit": "Level", "Points": 2}, {"Blade": "MeteorDragoon", "Ratchet": "7-70", "Bit": "Level", "Points": 2}, {"Blade": "MeteorDragoon", "Ratchet": "9-70", "Bit": "Elevate", "Points": 2}, {"Blade": "MummyCurse", "Ratchet": "9-60", "Bit": "Kick", "Points": 2}, {"Blade": "PhoenixWing", "Ratchet": "1-60", "Bit": "Hexa", "Points": 2}, {"Blade": "ShadowPegasus", "Ratchet": "1-60", "Bit": "Rush", "Points": 2}, {"Blade": "HoverWyvern", "Ratchet": "7-60", "Bit": "Low Rush", "Points": 2}, {"Blade": "HoverWyvern", "Ratchet": "9-60", "Bit": "Hexa", "Points": 2}, {"Blade": "GolemRock", "Ratchet": "6-60", "Bit": "Under Needle", "Points": 2}, {"Blade": "HoverWyvern", "Ratchet": "9-60", "Bit": "Jolt", "Points": 2}, {"Blade": "Metal Flare Wheel", "Ratchet": "7-60", "Bit": "Hexa", "Points": 2}, {"Blade": "Metal Blast Heavy", "Ratchet": "5-60", "Bit": "Hexa", "Points": 2}, {"Blade": "Metal Blast Heavy", "Ratchet": "3-60", "Bit": "Level", "Points": 2}, {"Blade": "LeonClaw", "Ratchet": "5-60", "Bit": "Point", "Points": 2}, {"Blade": "KnightMail", "Ratchet": "9-60", "Bit": "Rush", "Points": 2}, {"Blade": "KnightMail", "Ratchet": "6-60", "Bit": "Low Flat", "Points": 2}, {"Blade": "ImpactDrake", "Ratchet": "5-70", "Bit": "Low Rush", "Points": 2}, {"Blade": "ImpactDrake", "Ratchet": "3-60", "Bit": "Rush", "Points": 2}, {"Blade": "HoverWyvern", "Ratchet": "9-70", "Bit": "Kick", "Points": 2}, {"Blade": "HoverWyvern", "Ratchet": "9-60", "Bit": "Under Needle", "Points": 2}, {"Blade": "HoverWyvern", "Ratchet": "9-60", "Bit": "Low Orb", "Points": 2}, {"Blade": "PhoenixWing", "Ratchet": "1-70", "Bit": "Rush", "Points": 2}, {"Blade": "PhoenixWing", "Ratchet": "3-70", "Bit": "Point", "Points": 2}, {"Blade": "PhoenixWing", "Ratchet": "5-60", "Bit": "Low Rush", "Points": 2}, {"Blade": "PhoenixWing", "Ratchet": "5-80", "Bit": "Under Flat", "Points": 2}, {"Blade": "Plastic Blast Heavy", "Ratchet": "3-60", "Bit": "Kick", "Points": 2}, {"Blade": "Plastic Blast Jaggy", "Ratchet": "3-60", "Bit": "Low Rush", "Points": 2}, {"Blade": "TyrannoBeat", "Ratchet": "7-60", "Bit": "Jolt", "Points": 2}, {"Blade": "TyrannoBeat", "Ratchet": "3-60", "Bit": "Rush", "Points": 2}, {"Blade": "TyrannoBeat", "Ratchet": "1-60", "Bit": "Low Rush", "Points": 2}, {"Blade": "SilverWolf", "Ratchet": "9-60", "Bit": "Hexa", "Points": 2}, {"Blade": "SharkScale", "Ratchet": "9-60", "Bit": "Rush", "Points": 2}, {"Blade": "SharkScale", "Ratchet": "9-60", "Bit": "Jolt", "Points": 2}, {"Blade": "SharkScale", "Ratchet": "7-60", "Bit": "Low Rush", "Points": 2}, {"Blade": "SharkScale", "Ratchet": "4-50", "Bit": "Free Ball", "Points": 2}, {"Blade": "SharkScale", "Ratchet": "3-80", "Bit": "Rubber Accel", "Points": 2}, {"Blade": "SharkScale", "Ratchet": "3-60", "Bit": "Jolt", "Points": 2}, {"Blade": "SharkScale", "Ratchet": "1-70", "Bit": "Free Flat", "Points": 2}, {"Blade": "SharkScale", "Ratchet": "1-50", "Bit": "Jolt", "Points": 2}, {"Blade": "SharkScale", "Ratchet": "1-60", "Bit": "Level", "Points": 2}, {"Blade": "ScorpioSpear", "Ratchet": "7-60", "Bit": "Low Flat", "Points": 2}, {"Blade": "TyrannoBeat", "Ratchet": "9-70", "Bit": "Rush", "Points": 2}, {"Blade": "PhoenixWing", "Ratchet": "7-60", "Bit": "Rubber Accel", "Points": 1}, {"Blade": "ScorpioSpear", "Ratchet": "0-60", "Bit": "Level", "Points": 1}, {"Blade": "SamuraiCalibur", "Ratchet": "7-60", "Bit": "Kick", "Points": 1}, {"Blade": "SamuraiCalibur", "Ratchet": "1-70", "Bit": "Free Ball", "Points": 1}, {"Blade": "Plastic Hunt Heavy", "Ratchet": "5-60", "Bit": "Kick", "Points": 1}, {"Blade": "Plastic Dark Heavy", "Ratchet": "5-60", "Bit": "Rush", "Points": 1}, {"Blade": "Plastic Blast Wheel", "Ratchet": "9-60", "Bit": "Level", "Points": 1}, {"Blade": "Plastic Blast Wheel", "Ratchet": "9-60", "Bit": "Kick", "Points": 1}, {"Blade": "Plastic Blast Wheel", "Ratchet": "9-60", "Bit": "Ball", "Points": 1}, {"Blade": "Plastic Blast Wheel", "Ratchet": "6-60", "Bit": "Hexa", "Points": 1}, {"Blade": "Plastic Blast Jaggy", "Ratchet": "4-50", "Bit": "Hexa", "Points": 1}, {"Blade": "SharkScale", "Ratchet": "4-60", "Bit": "Low Rush", "Points": 1}, {"Blade": "SharkScale", "Ratchet": "3-60", "Bit": "Low Orb", "Points": 1}, {"Blade": "SharkScale", "Ratchet": "1-70", "Bit": "Rush", "Points": 1}, {"Blade": "SharkScale", "Ratchet": "1-50", "Bit": "Level", "Points": 1}, {"Blade": "ScorpioSpear", "Ratchet": "3-60", "Bit": "Low Rush", "Points": 1}, {"Blade": "ScorpioSpear", "Ratchet": "3-60", "Bit": "Kick", "Points": 1}, {"Blade": "SharkScale", "Ratchet": "7-60", "Bit": "Level", "Points": 1}, {"Blade": "SharkScale", "Ratchet": "9-60", "Bit": "Level", "Points": 1}, {"Blade": "TyrannoBeat", "Ratchet": "1-60", "Bit": "Kick", "Points": 1}, {"Blade": "SilverWolf", "Ratchet": "9-70", "Bit": "Low Orb", "Points": 1}, {"Blade": "TyrannoBeat", "Ratchet": "1-70", "Bit": "Kick", "Points": 1}, {"Blade": "ShelterDrake", "Ratchet": "3-60", "Bit": "Taper", "Points": 1}, {"Blade": "SilverWolf", "Ratchet": "9-70", "Bit": "Free Ball", "Points": 1}, {"Blade": "WizardRod", "Ratchet": "1-60", "Bit": "Wall Wedge", "Points": 1}, {"Blade": "WizardRod", "Ratchet": "7-60", "Bit": "Ball", "Points": 1}, {"Blade": "UnicornSting", "Ratchet": "9-60", "Bit": "Orb", "Points": 1}, {"Blade": "SharkScale", "Ratchet": "7-60", "Bit": "Rush", "Points": 1}, {"Blade": "AeroPegasus", "Ratchet": "1-50", "Bit": "Kick", "Points": 1}, {"Blade": "AeroPegasus", "Ratchet": "1-60", "Bit": "Jolt", "Points": 1}, {"Blade": "AeroPegasus", "Ratchet": "1-60", "Bit": "Hexa", "Points": 1}, {"Blade": "AeroPegasus", "Ratchet": "9-60", "Bit": "Hexa", "Points": 1}, {"Blade": "ClockMirage", "Ratchet": "4-55", "Bit": "Ball", "Points": 1}, {"Blade": "ClockMirage", "Ratchet": "9-65", "Bit": "Under Needle", "Points": 1}, {"Blade": "AeroPegasus", "Ratchet": "3-60", "Bit": "Rush", "Points": 1}, {"Blade": "CobaltDragoon", "Ratchet": "7-55", "Bit": "Elevate", "Points": 1}, {"Blade": "CobaltDragoon", "Ratchet": "7-60", "Bit": "Level", "Points": 1}, {"Blade": "CobaltDrake", "Ratchet": "1-60", "Bit": "Low Rush", "Points": 1}, {"Blade": "CobaltDrake", "Ratchet": "9-60", "Bit": "Kick", "Points": 1}, {"Blade": "DranStrike", "Ratchet": "1-70", "Bit": "Kick", "Points": 1}, {"Blade": "DranStrike", "Ratchet": "7-60", "Bit": "Rush", "Points": 1}, {"Blade": "DranStrike", "Ratchet": "9-60", "Bit": "Jolt", "Points": 1}, {"Blade": "CobaltDragoon", "Ratchet": "5-60", "Bit": "Rubber Accel", "Points": 1}, {"Blade": "DranStrike", "Ratchet": "9-70", "Bit": "Hexa", "Points": 1}, {"Blade": "GolemRock", "Ratchet": "1-70", "Bit": "Low Orb", "Points": 1}, {"Blade": "HellScythe", "Ratchet": "4-60", "Bit": "Taper", "Points": 1}, {"Blade": "GolemRock", "Ratchet": "5-60", "Bit": "Low Rush", "Points": 1}, {"Blade": "HoverWyvern", "Ratchet": "9-60", "Bit": "Low Flat", "Points": 1}, {"Blade": "ImpactDrake", "Ratchet": "1-60", "Bit": "Jolt", "Points": 1}, {"Blade": "ImpactDrake", "Ratchet": "7-70", "Bit": "Ball", "Points": 1}, {"Blade": "HoverWyvern", "Ratchet": "3-60", "Bit": "Hexa", "Points": 1}, {"Blade": "KnightMail", "Ratchet": "7-60", "Bit": "Level", "Points": 1}, {"Blade": "Metal Blast Heavy", "Ratchet": "1-50", "Bit": "Jolt", "Points": 1}, {"Blade": "Metal Blast Heavy", "Ratchet": "1-60", "Bit": "Jolt", "Points": 1}, {"Blade": "Metal Blast Heavy", "Ratchet": "3-60", "Bit": "Low Rush", "Points": 1}, {"Blade": "Metal Blast Heavy", "Ratchet": "4-50", "Bit": "Low Rush", "Points": 1}, {"Blade": "Metal Blast Heavy", "Ratchet": "7-70", "Bit": "Hexa", "Points": 1}, {"Blade": "Metal Blast Heavy", "Ratchet": "9-60", "Bit": "Rush", "Points": 1}, {"Blade": "KnightMail", "Ratchet": "1-60", "Bit": "Flat", "Points": 1}, {"Blade": "Metal Blast Wheel", "Ratchet": "6-60", "Bit": "Hexa", "Points": 1}, {"Blade": "Metal Blast Wheel", "Ratchet": "9-60", "Bit": "Rush", "Points": 1}, {"Blade": "Metal Flare Erase", "Ratchet": "3-60", "Bit": "Low Rush", "Points": 1}, {"Blade": "Metal Eclipse Heavy", "Ratchet": "5-60", "Bit": "Trans Point", "Points": 1}, {"Blade": "MeteorDragoon", "Ratchet": "6-80", "Bit": "Elevate", "Points": 1}, {"Blade": "MummyCurse", "Ratchet": "1-50", "Bit": "Hexa", "Points": 1}, {"Blade": "MummyCurse", "Ratchet": "1-60", "Bit": "Hexa", "Points": 1}, {"Blade": "Metal Hunt Free", "Ratchet": "9-60", "Bit": "Wedge", "Points": 1}, {"Blade": "MummyCurse", "Ratchet": "1-70", "Bit": "Low Orb", "Points": 1}, {"Blade": "PhoenixWing", "Ratchet": "1-70", "Bit": "Low Flat", "Points": 1}, {"Blade": "PhoenixWing", "Ratchet": "3-60", "Bit": "Rush", "Points": 1}, {"Blade": "PhoenixWing", "Ratchet": "5-70", "Bit": "Low Rush", "Points": 1}, {"Blade": "Plastic Blast Heavy", "Ratchet": "4-50", "Bit": "Rush", "Points": 1}, {"Blade": "Plastic Blast Slash", "Ratchet": "4-50", "Bit": "Low Rush", "Points": 1}, {"Blade": "Plastic BLitz Flow Heavy", "Ratchet": "4-50", "Bit": "Level", "Points": 1}, {"Blade": "Plastic Blitz Break Heavy", "Ratchet": "5-60", "Bit": "Kick", "Points": 1}];
+
+const els = {
+  statsRow: document.getElementById('statsRow'),
+  summaryGrid: document.getElementById('summaryGrid'),
+  results: document.getElementById('results'),
+  resultsHeading: document.getElementById('resultsHeading'),
+  search: document.getElementById('searchBox'),
+  blade: document.getElementById('bladeSelect'),
+  ratchet: document.getElementById('ratchetSelect'),
+  bit: document.getElementById('bitSelect'),
+  limit: document.getElementById('limitSelect'),
+  reset: document.getElementById('resetBtn'),
+  copy: document.getElementById('copyBtn')
+};
+
+function comboName(row) {
+  return `${row.Blade} ${row.Ratchet} ${row.Bit}`.trim();
+}
+
+function totalPoints(rows) {
+  return rows.reduce((sum, row) => sum + Number(row.Points || 0), 0);
+}
+
+function uniqueCount(key, rows = COMBOS) {
+  return new Set(rows.map(row => row[key]).filter(Boolean)).size;
+}
+
+function aggregateBy(rows, key) {
+  const map = new Map();
+  for (const row of rows) {
+    const val = row[key] || '—';
+    map.set(val, (map.get(val) || 0) + Number(row.Points || 0));
+  }
+  return [...map.entries()]
+    .map(([name, points]) => ({ name, points }))
+    .sort((a,b) => b.points - a.points || a.name.localeCompare(b.name));
+}
+
+function populateSelect(select, key, placeholder) {
+  const current = select.value;
+  const values = aggregateBy(COMBOS, key).map(x => x.name).filter(x => x !== '—');
+  select.innerHTML = `<option value="">${placeholder}</option>`;
+  for (const value of values) {
+    const opt = document.createElement('option');
+    opt.value = value;
+    opt.textContent = value;
+    select.appendChild(opt);
+  }
+  if (values.includes(current)) select.value = current;
+}
+
+function renderStats() {
+  const top = COMBOS[0];
+  const statData = [
+    ['Combos', COMBOS.length.toLocaleString()],
+    ['Unique blades', uniqueCount('Blade').toLocaleString()],
+    ['Total podium points', totalPoints(COMBOS).toLocaleString()],
+    ['Top combo', `${comboName(top)} (${top.Points})`]
+  ];
+  els.statsRow.innerHTML = statData.map(([label, value]) => `
+    <div class="stat">${label}<b>${value}</b></div>
+  `).join('');
+}
+
+function getFilteredRows() {
+  const query = els.search.value.trim().toLowerCase();
+  return COMBOS.filter(row => {
+    if (els.blade.value && row.Blade !== els.blade.value) return false;
+    if (els.ratchet.value && row.Ratchet !== els.ratchet.value) return false;
+    if (els.bit.value && row.Bit !== els.bit.value) return false;
+    if (query) {
+      const haystack = `${row.Blade} ${row.Ratchet} ${row.Bit} ${comboName(row)}`.toLowerCase();
+      if (!haystack.includes(query)) return false;
+    }
+    return true;
+  }).sort((a,b) => b.Points - a.Points || comboName(a).localeCompare(comboName(b)));
+}
+
+function renderSummary(rows) {
+  const sections = [
+    ['Top blades', aggregateBy(rows, 'Blade').slice(0,8)],
+    ['Top ratchets', aggregateBy(rows, 'Ratchet').slice(0,8)],
+    ['Top bits', aggregateBy(rows, 'Bit').slice(0,8)]
+  ];
+  els.summaryGrid.innerHTML = sections.map(([title, items]) => `
+    <div class="mini-card">
+      <h2>${title}</h2>
+      <div class="pill-list">
+        ${items.map(item => `<span class="pill"><b>${item.name}</b> ${item.points}</span>`).join('') || '<span class="muted">No matches</span>'}
+      </div>
+    </div>
+  `).join('');
+}
+
+function renderResults() {
+  const rows = getFilteredRows();
+  const limit = Number(els.limit.value);
+  const visibleRows = rows.slice(0, limit);
+  const maxPoints = rows.length ? Math.max(...rows.map(r => Number(r.Points))) : 1;
+
+  els.resultsHeading.textContent = `Ranked combos — ${rows.length} match${rows.length === 1 ? '' : 'es'}`;
+
+  renderSummary(rows);
+
+  if (!visibleRows.length) {
+    els.results.innerHTML = '<div class="empty">No combos match the current filters.</div>';
+    return;
+  }
+
+  els.results.innerHTML = `
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Rank</th>
+            <th>Combo</th>
+            <th>Blade</th>
+            <th>Ratchet</th>
+            <th>Bit</th>
+            <th>Points</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${visibleRows.map((row, i) => {
+            const pct = Math.max(3, (Number(row.Points) / maxPoints) * 100);
+            return `
+              <tr>
+                <td class="rank">${i + 1}</td>
+                <td class="combo">${comboName(row)}</td>
+                <td>${row.Blade}</td>
+                <td>${row.Ratchet}</td>
+                <td>${row.Bit}</td>
+                <td class="points-cell">
+                  <div class="bar-wrap">
+                    <div class="bar-track"><div class="bar-fill" style="width:${pct}%"></div></div>
+                    <span class="pts-val">${row.Points}</span>
+                  </div>
+                </td>
+              </tr>
+            `;
+          }).join('')}
+        </tbody>
+      </table>
+    </div>
+  `;
+}
+
+function copyVisibleRows() {
+  const rows = getFilteredRows().slice(0, Number(els.limit.value));
+  const header = ['Blade','Ratchet','Bit','Points'];
+  const tsv = [header.join('\t'), ...rows.map(r => [r.Blade, r.Ratchet, r.Bit, r.Points].join('\t'))].join('\n');
+
+  navigator.clipboard.writeText(tsv).then(() => {
+    const original = els.copy.textContent;
+    els.copy.textContent = 'Copied!';
+    setTimeout(() => els.copy.textContent = original, 1000);
+  }).catch(() => {
+    const box = document.createElement('textarea');
+    box.value = tsv;
+    document.body.appendChild(box);
+    box.select();
+    document.execCommand('copy');
+    document.body.removeChild(box);
+  });
+}
+
+function resetFilters() {
+  els.search.value = '';
+  els.blade.value = '';
+  els.ratchet.value = '';
+  els.bit.value = '';
+  els.limit.value = '50';
+  renderResults();
+}
+
+for (const el of [els.search, els.blade, els.ratchet, els.bit, els.limit]) {
+  el.addEventListener('input', renderResults);
+  el.addEventListener('change', renderResults);
+}
+
+els.reset.addEventListener('click', resetFilters);
+els.copy.addEventListener('click', copyVisibleRows);
+
+populateSelect(els.blade, 'Blade', 'Any blade');
+populateSelect(els.ratchet, 'Ratchet', 'Any ratchet');
+populateSelect(els.bit, 'Bit', 'Any bit');
+renderStats();
+renderResults();
+</script>
+</body>
+</html>

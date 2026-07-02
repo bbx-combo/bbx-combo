@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BBX Combo Finder</title>
+<style>
+  :root{
+    --bg:#0f1220;
+    --panel:#171b2e;
+    --panel2:#1e2340;
+    --border:#2c3357;
+    --text:#eef0fb;
+    --muted:#9aa0c3;
+    --accent:#ff5d3b;
+    --accent2:#3bd6ff;
+    --gold:#ffcf56;
+  }
+
+  *{box-sizing:border-box;}
+
+  body{
+    margin:0;
+    min-height:100vh;
+    font-family:'Segoe UI',system-ui,-apple-system,BlinkMacSystemFont,sans-serif;
+    background:
+      radial-gradient(circle at 15% 10%, rgba(255,93,59,0.13), transparent 36%),
+      radial-gradient(circle at 85% 90%, rgba(59,214,255,0.12), transparent 38%),
+      var(--bg);
+    color:var(--text);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:28px 16px;
+  }
+
+  .wrap{
+    width:100%;
+    max-width:900px;
+  }
+
+  header{
+    text-align:center;
+    margin-bottom:30px;
+  }
+
+  .eyebrow{
+    text-transform:uppercase;
+    letter-spacing:0.18em;
+    font-size:11px;
+    color:var(--accent2);
+    font-weight:800;
+    margin-bottom:8px;
+  }
+
+  h1{
+    font-size:clamp(34px,6vw,54px);
+    margin:0 0 10px;
+    letter-spacing:-0.03em;
+    background:linear-gradient(90deg,var(--accent),var(--gold));
+    -webkit-background-clip:text;
+    background-clip:text;
+    color:transparent;
+  }
+
+  .sub{
+    color:var(--muted);
+    font-size:15px;
+    line-height:1.55;
+    max-width:640px;
+    margin:0 auto;
+  }
+
+  .date-note{
+    display:inline-block;
+    margin-top:16px;
+    padding:8px 13px;
+    background:rgba(255,207,86,0.10);
+    border:1px solid rgba(255,207,86,0.35);
+    color:var(--gold);
+    border-radius:999px;
+    font-size:13px;
+    font-weight:700;
+  }
+
+  .cards{
+    display:grid;
+    grid-template-columns:repeat(2, minmax(0,1fr));
+    gap:18px;
+    margin-top:28px;
+  }
+
+  @media (max-width:680px){
+    .cards{grid-template-columns:1fr;}
+  }
+
+  .card{
+    display:block;
+    text-decoration:none;
+    color:var(--text);
+    background:linear-gradient(180deg, rgba(255,255,255,0.035), transparent), var(--panel);
+    border:1px solid var(--border);
+    border-radius:18px;
+    padding:24px;
+    min-height:190px;
+    position:relative;
+    overflow:hidden;
+    transition:transform 0.18s ease, border-color 0.18s ease, background 0.18s ease;
+  }
+
+  .card:hover{
+    transform:translateY(-4px);
+    border-color:var(--accent2);
+    background:linear-gradient(180deg, rgba(59,214,255,0.08), transparent), var(--panel);
+  }
+
+  .card::after{
+    content:"";
+    position:absolute;
+    width:150px;
+    height:150px;
+    right:-50px;
+    bottom:-55px;
+    border-radius:50%;
+    background:rgba(255,255,255,0.035);
+  }
+
+  .tag{
+    display:inline-block;
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:0.12em;
+    color:var(--accent2);
+    font-weight:800;
+    margin-bottom:18px;
+  }
+
+  .card h2{
+    font-size:28px;
+    margin:0 0 8px;
+    letter-spacing:-0.02em;
+  }
+
+  .card p{
+    color:var(--muted);
+    font-size:14px;
+    line-height:1.5;
+    margin:0 0 22px;
+    max-width:92%;
+  }
+
+  .open{
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    color:var(--gold);
+    font-size:13px;
+    font-weight:800;
+  }
+
+  .open span{
+    transition:transform 0.18s ease;
+  }
+
+  .card:hover .open span{
+    transform:translateX(4px);
+  }
+
+  footer{
+    text-align:center;
+    color:var(--muted);
+    font-size:12px;
+    margin-top:28px;
+  }
+</style>
+</head>
+<body>
+  <main class="wrap">
+    <header>
+      <div class="eyebrow">BBX tournament combo data</div>
+      <h1>BBX Combo Finder</h1>
+      <p class="sub">
+        Choose a dataset to explore ranked Beyblade X combos based on tournament results.
+        These pages are simplified lookup tools, not a complete global meta tracker.
+      </p>
+      <div class="date-note">Data correct as of 2 July 2026</div>
+    </header>
+
+    <section class="cards" aria-label="Choose dataset">
+      <a class="card" href="bban_combo_finder.html">
+        <div class="tag">Australia</div>
+        <h2>BBAN Data</h2>
+        <p>
+          Beyblade Australia Network combo data, based on the small cleaned BBAN result set.
+        </p>
+        <div class="open">Open BBAN Finder <span>→</span></div>
+      </a>
+
+      <a class="card" href="awwc_combo_finder.html">
+        <div class="tag">AWWC</div>
+        <h2>AWWC Data</h2>
+        <p>
+          AWWC combo data in the same simplified finder format for quick comparison.
+        </p>
+        <div class="open">Open AWWC Finder <span>→</span></div>
+      </a>
+    </section>
+
+    <footer>
+      Place this file as <strong>index.html</strong> in the same folder as
+      <strong>bban_combo_finder.html</strong> and <strong>awwc_combo_finder.html</strong>.
+    </footer>
+  </main>
+</body>
+</html>
