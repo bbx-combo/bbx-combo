@@ -362,9 +362,30 @@ function aggregateBy(rows, key) {
     .sort((a,b) => b.points - a.points || a.name.localeCompare(b.name));
 }
 
+function alphaSort(a, b) {
+  return a.localeCompare(b, undefined, { sensitivity: 'base' });
+}
+
+function ratchetSort(a, b) {
+  const parse = value => {
+    const nums = String(value).match(/\d+/g);
+    if (!nums) return [Number.MAX_SAFE_INTEGER, Number.MAX_SAFE_INTEGER, String(value)];
+    return [Number(nums[0]), Number(nums[1] || 0), String(value)];
+  };
+  const pa = parse(a);
+  const pb = parse(b);
+  return pa[0] - pb[0] || pa[1] - pb[1] || alphaSort(pa[2], pb[2]);
+}
+
+function valuesForSelect(key) {
+  const values = [...new Set(COMBOS.map(row => row[key]).filter(Boolean))];
+  if (key === 'Ratchet') return values.sort(ratchetSort);
+  return values.sort(alphaSort);
+}
+
 function populateSelect(select, key, placeholder) {
   const current = select.value;
-  const values = aggregateBy(COMBOS, key).map(x => x.name).filter(x => x !== '—');
+  const values = valuesForSelect(key).filter(x => x !== '—');
   select.innerHTML = `<option value="">${placeholder}</option>`;
   for (const value of values) {
     const opt = document.createElement('option');
