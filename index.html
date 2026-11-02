@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Beyblade X Combo Finder</title>
+
 <style>
   :root{
     --bg:#0f1220;
@@ -17,7 +18,9 @@
     --gold:#ffcf56;
   }
 
-  *{box-sizing:border-box;}
+  *{
+    box-sizing:border-box;
+  }
 
   body{
     margin:0;
@@ -91,27 +94,36 @@
   }
 
   @media (max-width:680px){
-    .cards{grid-template-columns:1fr;}
+    .cards{
+      grid-template-columns:1fr;
+    }
   }
 
   .card{
     display:block;
     text-decoration:none;
     color:var(--text);
-    background:linear-gradient(180deg, rgba(255,255,255,0.035), transparent), var(--panel);
+    background:
+      linear-gradient(180deg, rgba(255,255,255,0.035), transparent),
+      var(--panel);
     border:1px solid var(--border);
     border-radius:18px;
     padding:24px;
     min-height:190px;
     position:relative;
     overflow:hidden;
-    transition:transform 0.18s ease, border-color 0.18s ease, background 0.18s ease;
+    transition:
+      transform 0.18s ease,
+      border-color 0.18s ease,
+      background 0.18s ease;
   }
 
   .card:hover{
     transform:translateY(-4px);
     border-color:var(--accent2);
-    background:linear-gradient(180deg, rgba(59,214,255,0.08), transparent), var(--panel);
+    background:
+      linear-gradient(180deg, rgba(59,214,255,0.08), transparent),
+      var(--panel);
   }
 
   .card::after{
@@ -165,46 +177,66 @@
   .card:hover .open span{
     transform:translateX(4px);
   }
-
-  footer{
-    text-align:center;
-    color:var(--muted);
-    font-size:12px;
-    margin-top:28px;
-  }
 </style>
 </head>
+
 <body>
   <main class="wrap">
+
     <header>
       <div class="eyebrow">Beyblade X tournament combo data</div>
+
       <h1>Beyblade X Combo Finder</h1>
+
       <p class="sub">
-        Choose a dataset to explore ranked Beyblade X combos based on tournament results.
-        These pages are simplified lookup tools, not a complete global meta tracker.
+        Explore Beyblade X tournament combinations using BBAN data,
+        or jump directly to WBO's winning-combos tool.
       </p>
-      <div class="date-note">BBAN and WBO data correct as of 8 September 2026.</div>
+
+      <div class="date-note">
+        BBAN data updated 2 November 2026.
+      </div>
     </header>
 
     <section class="cards" aria-label="Choose dataset">
+
       <a class="card" href="bban_combo_finder.html">
         <div class="tag">Australia</div>
+
         <h2>BBAN Data</h2>
+
         <p>
-          Beyblade Australia Network combo data.
+          Beyblade Australia Network tournament combo data,
+          with state and part filters.
         </p>
-        <div class="open">Open BBAN Combo Finder <span>→</span></div>
+
+        <div class="open">
+          Open BBAN Combo Finder <span>→</span>
+        </div>
       </a>
 
-      <a class="card" href="awwc_combo_finder.html">
+      <a
+        class="card"
+        href="https://leagues.worldbeyblade.org/winning-combos/x"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
         <div class="tag">WBO</div>
+
         <h2>WBO Data</h2>
+
         <p>
-          WBO combo data taken from AWWC dataset.
+          WBO now has its own winning-combos tool,
+          so you can view the latest tournament data directly there.
         </p>
-        <div class="open">Open WBO Combo Finder <span>→</span></div>
+
+        <div class="open">
+          Open WBO Winning Combos <span>→</span>
+        </div>
       </a>
+
     </section>
+
   </main>
 </body>
 </html>
